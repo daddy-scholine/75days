@@ -2,7 +2,7 @@
    settings + daily ticks in localStorage, photos as Blobs in IndexedDB. */
 (function () {
 "use strict";
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const TOTAL = 75;
 const KEY = "d75";
 const $ = (id) => document.getElementById(id);
@@ -34,8 +34,11 @@ function load() {
   return { settings: null, days: {} };
 }
 function persist() {
-  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
   catch (e) { toast("Couldn't save. Your phone's storage may be full."); return false; }
+  // cloud.js (optional accounts + groups) listens for this to sync
+  try { window.dispatchEvent(new Event("d75:changed")); } catch (e) {}
+  return true;
 }
 const day = (n) => S.days[n] || (S.days[n] = { c: {}, w: 0, t: "", kg: "", e: 0, notes: "", p: false });
 const habits = () => S.settings.habits;
@@ -120,7 +123,7 @@ function show(v, fromBack) {
     else if (view !== "vToday" && view !== "vSetup" && history.state && history.state.v) { history.back(); return; }
   }
   view = v;
-  for (const id of ["vSetup", "vToday", "vCal", "vProg", "vSet"]) $(id).hidden = id !== v;
+  for (const id of ["vSetup", "vToday", "vCal", "vGroups", "vProg", "vSet"]) $(id).hidden = id !== v;
   $("tabs").hidden = v === "vSetup";
   document.querySelectorAll("#tabs button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.v === v));
   if (b(v)) render();
@@ -391,7 +394,23 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persist().
 function render() {
   if (!S.settings) return;
   if (view === "vToday") renderToday(); else if (view === "vCal") renderCal(); else if (view === "vProg") renderProg(); else if (view === "vSet") renderSet();
+  else if (view === "vGroups") window.dispatchEvent(new Event("d75:groups"));
+  if (view === "vSet") window.dispatchEvent(new Event("d75:settings"));
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && S.settings) render(); });
+
+/* ---------- bridge for cloud.js ---------- */
+window.D75 = {
+  TOTAL,
+  get state() { return S; },
+  // replace local data with a merged copy from the cloud, then redraw
+  replace(next) { S = next; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} if (S.settings) { sel = clampN(todayN()); if (view === "vSetup") show("vToday"); else render(); } },
+  score: (r) => (S.settings ? score(r) : 0),
+  summary: () => summary(),
+  todayN: () => todayN(),
+  toast, esc, arm, show,
+  view: () => view,
+};
+window.dispatchEvent(new Event("d75:ready"));
 if (S.settings) { sel = clampN(todayN()); show("vToday"); } else { setupInit(); show("vSetup"); }
 })();

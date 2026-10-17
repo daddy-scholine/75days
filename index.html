@@ -47,6 +47,7 @@
       </div>
 
       <button class="btn primary big" id="suGo">Start my 75 days</button>
+      <button class="btn big" id="suSignin" hidden>I already have an account</button>
       <p class="muted small center">No account. Everything stays on this phone.</p>
     </div>
   </section>
@@ -103,6 +104,12 @@
       <div class="cal" id="cGrid"></div>
       <div class="legend"><span class="muted small">Score</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><span class="muted small">all done</span><i class="busyi"></i><span class="muted small">busy</span></div>
     </div>
+  </section>
+
+  <!-- Groups (filled by cloud.js) -->
+  <section class="view" id="vGroups" hidden>
+    <header class="pagehead"><h2>Groups</h2><p class="muted">Do the 75 days together. Groups see only scores and streaks.</p></header>
+    <div class="pad" id="gRoot"><div class="card"><p class="small muted">Loading…</p></div></div>
   </section>
 
   <!-- Progress -->
@@ -165,6 +172,7 @@
         <p class="small" id="sInstall"></p>
         <button class="btn" id="sInstallBtn" hidden>Install app</button>
       </div>
+      <div class="card" id="sAccount" hidden></div>
       <div class="card danger-zone">
         <div class="label">Start over</div>
         <p class="muted small">Deletes every tick, note and photo on this phone.</p>
@@ -177,6 +185,7 @@
   <nav class="tabs" id="tabs" hidden>
     <button data-v="vToday" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Today</button>
     <button data-v="vCal"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendar</button>
+    <button data-v="vGroups"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 13.6c2.6.2 4.5 2 4.5 4.9"/></svg>Groups</button>
     <button data-v="vProg"><svg viewBox="0 0 24 24"><path d="M4 19V11M10 19V5M16 19v-6M22 19H2"/></svg>Progress</button>
     <button data-v="vSet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Settings</button>
   </nav>
@@ -185,5 +194,6 @@
   <div class="update" id="update" hidden><span>A new version is ready.</span><button class="btn primary" id="updBtn">Update</button></div>
 </div>
 <script src="app.js"></script>
+<script type="module" src="cloud.js"></script>
 </body>
 </html>

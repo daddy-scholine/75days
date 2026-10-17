@@ -1,0 +1,51 @@
+rules_version = '2';
+// Security rules for 75 Days. Paste into Firebase console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Each person's own settings and days: only they can read or write them.
+    match /users/{uid} {
+      allow read, write: if isMe(uid);
+      match /days/{day} {
+        allow read, write: if isMe(uid);
+      }
+    }
+
+    // Invite codes: anyone signed in can look up a code they were given, but not list all codes.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.keys().hasOnly(['gid', 'owner'])
+        && code.matches('^[A-Z2-9]{6}$');
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+    }
+
+    match /groups/{gid} {
+      function group() { return get(/databases/$(database)/documents/groups/$(gid)).data; }
+      function isMember() { return exists(/databases/$(database)/documents/groups/$(gid)/members/$(request.auth.uid)); }
+
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.name is string && request.resource.data.name.size() <= 40
+        && request.resource.data.keys().hasOnly(['name', 'code', 'owner', 'created']);
+      allow update: if signedIn() && resource.data.owner == request.auth.uid
+        && request.resource.data.owner == resource.data.owner;
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+
+      // Members see each other's scores only. You can only write your own row.
+      match /members/{uid} {
+        allow read: if signedIn() && isMember();
+        allow create, update: if isMe(uid)
+          && exists(/databases/$(database)/documents/groups/$(gid))
+          && request.resource.data.keys().hasOnly(['name', 'start', 'n', 'good', 'scores', 'busy', 'u'])
+          && request.resource.data.name is string && request.resource.data.name.size() <= 30
+          && request.resource.data.scores is map && request.resource.data.busy is map;
+        allow delete: if isMe(uid) || (signedIn() && group().owner == request.auth.uid);
+      }
+    }
+  }
+}
