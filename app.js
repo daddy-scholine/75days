@@ -2,7 +2,7 @@
    settings + daily ticks in localStorage, photos as Blobs in IndexedDB. */
 (function () {
 "use strict";
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const TOTAL = 75;
 const KEY = "d75";
 const $ = (id) => document.getElementById(id);
@@ -112,7 +112,13 @@ function arm(btn, label, armedLabel, fn) {
   });
 }
 let view = "vToday";
-function show(v) {
+function show(v, fromBack) {
+  // Android back button: other tabs sit one step above Today in history, so Back returns to Today instead of closing the app
+  if (!fromBack && v !== "vSetup") {
+    if (v !== "vToday" && view === "vToday") history.pushState({ v }, "");
+    else if (v !== "vToday") history.replaceState({ v }, "");
+    else if (view !== "vToday" && view !== "vSetup" && history.state && history.state.v) { history.back(); return; }
+  }
   view = v;
   for (const id of ["vSetup", "vToday", "vCal", "vProg", "vSet"]) $(id).hidden = id !== v;
   $("tabs").hidden = v === "vSetup";
@@ -122,6 +128,8 @@ function show(v) {
 }
 const b = (v) => v !== "vSetup";
 document.querySelectorAll("#tabs button").forEach((btn) => btn.addEventListener("click", () => show(btn.dataset.v)));
+window.addEventListener("popstate", () => { if (S.settings) show((history.state && history.state.v) || "vToday", true); });
+const buzz = (ms) => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
 
 /* ---------- setup ---------- */
 let tmp = [];
@@ -191,6 +199,7 @@ function toggle(id) {
   if (h.type === "water") r.w = r.w >= (h.target || 6) ? 0 : h.target || 6;
   else r.c[id] = !done(h, r) ? true : false;
   if (h.type === "photo" && !r.c[id] && r.p) toast("Remove the photo to untick this.");
+  buzz(done(h, r) ? 12 : 6);
   persist(); renderToday();
 }
 $("tChecks").addEventListener("click", (e) => {
@@ -355,8 +364,15 @@ arm($("sReset"), "Delete everything", "Tap again to delete everything", async ()
 
 /* ---------- install + offline ---------- */
 let deferredInstall = null;
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredInstall = e; if (view === "vSet") renderSet(); });
-$("sInstallBtn").onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null; renderSet(); };
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function ibDismissed() { try { return +(localStorage.getItem("d75-ib") || 0) > Date.now(); } catch (e) { return false; } }
+function updateInstallBar() { $("installBar").hidden = !deferredInstall || isStandalone() || ibDismissed(); }
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredInstall = e; updateInstallBar(); if (view === "vSet") renderSet(); });
+window.addEventListener("appinstalled", () => { deferredInstall = null; updateInstallBar(); toast("Installed. Open 75 Days from your home screen."); if (view === "vSet") renderSet(); });
+async function doInstall() { if (!deferredInstall) return; const ev = deferredInstall; deferredInstall = null; ev.prompt(); try { await ev.userChoice; } catch (e) {} updateInstallBar(); if (view === "vSet") renderSet(); }
+$("sInstallBtn").onclick = doInstall;
+$("ibGo").onclick = doInstall;
+$("ibX").onclick = () => { try { localStorage.setItem("d75-ib", String(Date.now() + 7 * 864e5)); } catch (e) {} updateInstallBar(); };
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").then((reg) => {

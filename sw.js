@@ -1,5 +1,5 @@
 /* Offline cache for 75 Days. Bump VERSION on every release so phones pick up the update. */
-const VERSION = "75days-v1.0.0";
+const VERSION = "75days-v1.1.0";
 const SHELL = ["./", "index.html", "app.css", "app.js", "manifest.webmanifest", "privacy.html",
   "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"];
 
