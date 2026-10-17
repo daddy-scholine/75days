@@ -1,22 +1,16 @@
-# 75-Day Challenge
+# 75 Days
 
-A single-page tracker for a 75-day challenge (18 October – 31 December 2026, residency edition).
+A 75-day habit challenge tracker that works offline and installs on your phone.
 
-## Features
+- No sign-up. All data and photos stay on the device.
+- Pick a habit set (Everyday, Fitness, Student / resident) and edit it.
+- Daily checklist, water glasses, rest and busy days, progress photo, weight, energy, notes.
+- Calendar heatmap, streak, good days, habit hit-rates, weight chart, before/now photos.
+- Share card image, backup and restore.
 
-- Daily sheet with an 11-item checklist (sleep, workout, walk, diet, water, Anki, deep study, AI hour, reading, conversation, progress photo)
-- Day types: workout day, Sunday rest, duty day
-- Weekly study / AI / communication focus for each of the 11 weeks
-- Body weight, energy, chapters read, top sets and notes per day
-- Progress photos with a first-vs-latest comparison
-- 75-day calendar heatmap, streak, good days (8+/11) and average score
-- "Never miss twice" alert
-- Group leaderboard (when hosted as a Claude artifact)
+**Open it:** https://daddy-scholine.github.io/75days/
+On iPhone or iPad: open in Safari → Share → Add to Home Screen.
 
-## Running
+`personal/` holds the earlier single-page tracker (18 Oct – 31 Dec 2026, residency edition).
 
-Open `index.html` in a browser. No build step.
-
-When opened outside Claude, all data (including photos) is saved in the browser's
-`localStorage` only. When hosted as a Claude artifact, data syncs to your account and
-the group board is shared with others who open the page.
+No build step. Static files served by GitHub Pages.
