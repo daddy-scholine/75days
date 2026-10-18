@@ -2,7 +2,7 @@
    settings + daily ticks in localStorage, photos as Blobs in IndexedDB. */
 (function () {
 "use strict";
-const VERSION = "1.2.0";
+const VERSION = "1.2.1";
 const TOTAL = 75;
 const KEY = "d75";
 const $ = (id) => document.getElementById(id);
